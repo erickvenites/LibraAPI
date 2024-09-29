@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "target": "ES2020", // Versão do JS para compilar
+    "module": "commonjs", // Módulo usado
+    "outDir": "./dist", // Pasta de saída dos arquivos compilados
+    "rootDir": "./src", // Pasta dos arquivos TS
+    "strict": true, // Ativar verificações estritas de tipo
+    "esModuleInterop": true // Importação de módulos ES6
+  },
+  "include": ["src/**/*.ts"], // Incluir arquivos
+  "exclude": ["node_modules"] // Excluir pastas
+}
