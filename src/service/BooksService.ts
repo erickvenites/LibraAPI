@@ -11,13 +11,33 @@ class BooksService {
   public async createNewBook({
     title,
     author,
+    publisher,
+    publishedDate,
+    ISBN,
+    genreId,
     quantityAvailable,
+    pages,
+    language,
+    summary,
+    coverUrl,
   }: BooksTypesRequest): Promise<Books | Error | null> {
-    return BooksModel.createBook({ title, author, quantityAvailable });
+    return BooksModel.createBook({
+      title,
+      author,
+      publisher,
+      publishedDate,
+      ISBN,
+      genreId,
+      quantityAvailable,
+      pages,
+      language,
+      summary,
+      coverUrl,
+    });
   }
   public async updateBook(
     id: string,
-    dataUpdatedBook: Books
+    dataUpdatedBook: BooksTypesRequest
   ): Promise<Books | Error | null> {
     return BooksModel.updateBook(id, dataUpdatedBook);
   }

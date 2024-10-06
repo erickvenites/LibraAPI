@@ -12,7 +12,7 @@ class AuthController {
 
   // Método para registrar um novo usuário
   public async register(req: Request, res: Response): Promise<void> {
-    const { name, email, password } = req.body;
+    const { name, email, password, address, phoneNumber } = req.body;
 
     if (
       typeof name !== "string" ||
@@ -20,18 +20,28 @@ class AuthController {
       typeof password !== "string"
     ) {
       res.status(400).json({ message: "Todos os campos são obrigatórios" });
-      return; // Retorna após enviar a resposta
+      return;
     }
 
-    const existingUser = await this.userService.fetchUserByEmail(email);
-    if (existingUser) {
-      res.status(400).json({ message: "Email já cadastrado!" });
-      return; // Retorna após enviar a resposta
-    }
+    try {
+      const existingUser = await this.userService.fetchUserByEmail(email);
+      if (existingUser) {
+        res.status(400).json({ message: "Email já cadastrado!" });
+        return;
+      }
 
-    const newUser = await this.userService.registerUser(name, email, password);
-    res.status(201).json({ ...newUser, password: undefined });
-    return; // Retorna sem valor
+      const newUser = await this.userService.registerUser(
+        name,
+        email,
+        password,
+        address,
+        phoneNumber
+      );
+      res.status(201).json({ ...newUser, password: undefined });
+    } catch (error) {
+      console.error("Error registering user:", error);
+      res.status(500).json({ message: "Erro ao registrar o usuário" });
+    }
   }
 
   // Método para login
@@ -55,7 +65,7 @@ class AuthController {
       return; // Retorna após enviar a resposta
     }
 
-    const payload = { id: user.id, email: user.email };
+    const payload = { id: user.id, email: user.email, role: user.roleId };
     const token = jwt.sign(payload, process.env.JWT_KEY as string);
     res.status(200).json({ message: "Usuário logado com sucesso", token });
     return; // Retorna sem valor

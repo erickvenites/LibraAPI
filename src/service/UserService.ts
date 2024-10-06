@@ -14,17 +14,32 @@ class UserService {
   }
 
   public async fetchUserByEmail(userEmail: string): Promise<User | null> {
-    return await UserModel.getUserByEmail(userEmail);
+    const user = await UserModel.getUserByEmail(userEmail);
+    if (!user) {
+      console.log(`User with email ${userEmail} not found`);
+    }
+    return user; // Retornar null se não encontrar o usuário
   }
 
   public async registerUser(
     userName: string,
     userEmail: string,
-    userPassword: string
+    userPassword: string,
+    address?: string,
+    phoneNumber?: string
   ): Promise<User> {
     const hashedPassword = bcrypt.hashSync(userPassword, 10);
-    return await UserModel.createUser(userName, userEmail, hashedPassword);
+    return await UserModel.createUser(
+      userName,
+      userEmail,
+      hashedPassword,
+      address,
+      phoneNumber
+    );
   }
+
+  //Pegar livro emprestado
+  //Devolver livro
 }
 
 export default UserService;

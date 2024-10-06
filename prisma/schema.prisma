@@ -1,9 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -14,15 +11,110 @@ datasource db {
 }
 
 model User {
-  id       String @id @default(uuid())
-  name     String
-  email    String @unique
-  password String
+  id           String  @id @default(uuid())
+  name         String
+  email        String  @unique
+  password     String
+  address      String?
+  phoneNumber  String?
+  role         Role    @relation(fields: [roleId], references: [id]) // Exemplo de roles: ADMIN, USER
+  roleId       String
+  borrowCount  Int     @default(0) // Contador de livros emprestados
+  penaltyCount Int     @default(0) // Contador de penalidades por atrasos
+
+  BorrowedBooks      BorrowedBooks[]
+  Penalty            Penalty[]
+  TransactionHistory TransactionHistory[]
+
+  @@index([email])
+}
+
+model Role {
+  id   String @id @default(uuid())
+  name String @unique
+  User User[]
 }
 
 model Books {
-  id                String @id @default(uuid())
-  title             String
-  author            String
-  quantityAvailable Int
+  id                 String               @id @default(uuid())
+  title              String
+  author             String
+  publisher          String
+  publishedDate      DateTime
+  ISBN               String               @unique
+  genreId            String
+  genre              Genre                @relation(fields: [genreId], references: [id])
+  quantityAvailable  Int
+  pages              Int
+  language           String
+  summary            String?
+  coverUrl           String?
+  BorrowedBooks      BorrowedBooks[]
+  Penalty            Penalty[]
+  TransactionHistory TransactionHistory[]
+  BookStatistics     BookStatistics[]
+
+  @@index([title])
+  @@index([author])
+  @@index([ISBN])
+}
+
+model Genre {
+  id   String @id @default(uuid())
+  name String @unique
+
+  books Books[]
+
+  @@index([name])
+}
+
+model BorrowedBooks {
+  id         String    @id @default(uuid())
+  userId     String
+  bookId     String
+  borrowedAt DateTime  @default(now())
+  dueDate    DateTime
+  returnedAt DateTime?
+  status     String    @default("active") // "active", "returned", "overdue"
+
+  user User  @relation(fields: [userId], references: [id])
+  book Books @relation(fields: [bookId], references: [id])
+
+  @@unique([userId, bookId])
+}
+
+model Penalty {
+  id       String   @id @default(uuid())
+  userId   String
+  bookId   String
+  amount   Float
+  reason   String // Motivo da penalidade
+  issuedAt DateTime @default(now())
+
+  user User  @relation(fields: [userId], references: [id])
+  book Books @relation(fields: [bookId], references: [id])
+}
+
+model TransactionHistory {
+  id         String   @id @default(uuid())
+  userId     String
+  bookId     String
+  action     String // "borrowed" ou "returned"
+  actionDate DateTime @default(now())
+
+  user User  @relation(fields: [userId], references: [id])
+  book Books @relation(fields: [bookId], references: [id])
+
+  @@index([userId, bookId])
+}
+
+model BookStatistics {
+  id      String @id @default(uuid())
+  bookId  String
+  views   Int    @default(0)
+  borrows Int    @default(0)
+
+  book Books @relation(fields: [bookId], references: [id])
+
+  @@index([bookId])
 }
