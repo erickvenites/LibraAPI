@@ -79,6 +79,96 @@ npm run dev
 
 6. Acesse a API em `http://localhost:3000`.
 
+## Dockerização
+
+Para rodar a aplicação usando Docker, siga os passos abaixo:
+
+1. Certifique-se de que você tenha o **Docker** e o **Docker Compose** instalados.
+
+2. Crie os arquivos `Dockerfile` e `docker-compose.yml` na raiz do seu projeto com o seguinte conteúdo:
+
+**Dockerfile**
+
+```dockerfile
+# Usa a imagem oficial do Node.js como base
+FROM node:18-alpine
+
+# Define o diretório de trabalho dentro do container
+WORKDIR /app
+
+# Copia o package.json e package-lock.json para o diretório de trabalho
+COPY package*.json ./
+
+# Instala as dependências da aplicação
+RUN npm install
+
+# Copia o restante do código da aplicação para o diretório de trabalho
+COPY . .
+
+# Gera os arquivos Prisma Client para uso no container
+RUN npx prisma generate
+
+# Exponha a porta 3000 para acessar a API
+EXPOSE 3000
+
+# Define o comando para iniciar a aplicação
+CMD ["npm", "run", "dev"]
+```
+
+**docker-compose.yml**
+
+```yaml
+version: '3.8'
+
+services:
+  # Serviço da API
+  app:
+    build: .
+    container_name: libraapi
+    ports:
+      - '3000:3000'
+    environment:
+      - DATABASE_URL=postgresql://postgres:password@db:5432/libraapi
+      - JWT_SECRET=sua_chave_secreta
+    depends_on:
+      - db
+    volumes:
+      - .:/app
+    command: npm run dev
+    networks:
+      - app-network
+
+  # Serviço do banco de dados PostgreSQL
+  db:
+    image: postgres:15-alpine
+    container_name: postgres-libraapi
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: libraapi
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+# Rede compartilhada entre os serviços
+networks:
+  app-network:
+    driver: bridge
+
+# Volume persistente para armazenar os dados do banco de dados
+volumes:
+  postgres-data:
+```
+
+3. Execute o seguinte comando para iniciar os containers:
+
+```bash
+docker-compose up --build
+```
+
+4. Acesse a aplicação em `http://localhost:3000`.
+
 ## Contribuição
 
 Sinta-se à vontade para contribuir com melhorias, novas funcionalidades ou correções.
